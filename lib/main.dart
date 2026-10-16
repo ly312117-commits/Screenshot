@@ -760,4 +760,208 @@ class _TaskHomePageState extends State<TaskHomePage>
       ),
     );
   }
+}import 'dart:math';
+
+class ChallengePost {
+  final String id;
+  final String username;
+  final String content;
+  int votes;
+  final DateTime createdAt;
+
+  ChallengePost({
+    required this.id,
+    required this.username,
+    required this.content,
+    this.votes = 0,
+    required this.createdAt,
+  });
+
+  // 🧠 خوارزمية الترتيب الذكي (Engagement Ranking Algorithm)
+  // تحسب النتيجة بناءً على: عدد الأصوات وعمر المنشور بالساعات لمنع احتكار الصدارة
+  double get rankingScore {
+    final hoursSinceCreation = DateTime.now().difference(createdAt).inMinutes / 60.0;
+    // إضافة 2 لمنع القسمة على صفر ولتقليل حدة الهبوط في أول ساعة
+    final gravity = 1.8; // معامل الجاذبية الزمنية (كلما زاد، اختفت المنشورات القديمة أسرع)
+    
+    // معادلة الخوارزمية: (الأصوات) مقسومة على (الوقت المستغرق أس الجاذبية)
+    return votes / pow((hoursSinceCreation + 2), gravity);
+  }
+}
+import 'package:flutter/material.dart';
+import 'challenge_model.dart';
+
+void main() {
+  runApp(const AntiFacebookApp());
+}
+
+class AntiFacebookApp extends StatelessWidget {
+  const AntiFacebookApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Challenge X',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xff0b0b0e),
+        primaryColor: const Color(0xff39ff14), // لون النيون الأخضر الحماسي للشباب
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xff39ff14),
+          secondary: Color(0xff00ffff),
+        ),
+      ),
+      home: const MainFeedScreen(),
+    );
+  }
+}
+
+class MainFeedScreen extends StatefulWidget {
+  const MainFeedScreen({super.key});
+
+  @override
+  State<MainFeedScreen> createState() => _MainFeedScreenState();
+}
+
+class _MainFeedScreenState extends State<MainFeedScreen> {
+  // مصفوفة البيانات المحلية للتطبيق (تعمل مباشرة في الذاكرة لتوفير التكاليف)
+  final List<ChallengePost> _posts = [
+    ChallengePost(
+      id: '1',
+      username: 'seif_billionaire',
+      content: '🚀 بدأت تصميم تطبيقي الجديد بدون سيرفرات مكلفة!',
+      votes: 15,
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    ChallengePost(
+      id: '2',
+      username: 'alex_nord',
+      content: '📸 تحدي غرفتي الفوضوية، أتحداكم تفرجوها لي!',
+      votes: 45,
+      createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+    ),
+    ChallengePost(
+      id: '3',
+      username: 'crypto_knight',
+      content: '🔥 صممت مجسم ثلاثي أبعاد بأدوات بدائية في 5 دقائق',
+      votes: 5,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 20)),
+    ),
+  ];
+
+  // دالة لتطبيق الخوارزمية وإعادة فرز المنشورات بناءً على النتيجة الذكية
+  void _sortPostsByAlgorithm() {
+    setState(() {
+      _posts.sort((a, b) => b.rankingScore.compareTo(a.rankingScore));
+    });
+  }
+
+  // دالة الضغط على زر التفاعل وزيادة قوة المنشور
+  void _boostPost(ChallengePost post) {
+    setState(() {
+      post.votes += 5; // إضافة قوة تصويتية للمنشور
+      _sortPostsByAlgorithm(); // إعادة الترتيب الفوري بالخوارزمية
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _sortPostsByAlgorithm(); // فرز أولي عند فتح التطبيق
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('⚡ CHALLENGE X', style: TextStyle(fontWeight: FontWeight.black, letterSpacing: 1.5)),
+        backgroundColor: const Color(0xff121216),
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          // كارت التحدي اليومي المبتكر للشباب
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xff181824),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xff39ff14), width: 1.5),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.flash_on, color: Colors.amber),
+                    SizedBox(width: 8),
+                    Text('تحدي اليوم الحارق', style: TextStyle(fontSize: 14, color: Colors.amber, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text('🎥 صوّر ردة فعل مضحكة لأخوك أو صديقك الآن بدون ترتيب مسبق!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ],
+            ),
+          ),
+          
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text('🔥 تغذية الخوارزمية الذكية (الأعلى تفاعلاً حالياً):', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // قائمة المنشورات المرتبة برمجياً بقوة الخوارزمية
+          Expanded(
+            child: ListView.builder(
+              itemCount: _posts.length,
+              itemBuilder: (context, index) {
+                final post = _posts[index];
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xff121216),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('@${post.username}', style: const TextStyle(color: Color(0xff00ffff), fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text(post.content, style: const TextStyle(fontSize: 15, color: Colors.white)),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Text('⚡ النبض: ${post.votes}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                const SizedBox(width: 15),
+                                Text('📊 وزن الخوارزمية: ${post.rankingScore.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xff39ff14), fontSize: 12)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // زر الصاروخ لإعطاء دفعة للمنشور وإعادة الحسابات الرياضية فوراً
+                      IconButton(
+                        icon: const Icon(Icons.rocket_launch, color: Color(0xff39ff14), size: 28),
+                        onPressed: () => _boostPost(post),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
